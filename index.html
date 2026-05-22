@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alb Health Core v0.1 Dashboard</title>
+  <style>
+    /* ===============================
+       Base / Theme
+    =============================== */
+    :root {
+      --bg: #07090c;
+      --bg-soft: #0f1218;
+      --card: rgba(255, 255, 255, 0.06);
+      --card-strong: rgba(255, 255, 255, 0.1);
+      --stroke: rgba(255, 255, 255, 0.14);
+      --text: #f5f7fa;
+      --muted: #97a1b1;
+      --accent: #12d0cc;
+      --healthy: #31d17c;
+      --attention: #ffbe44;
+      --critical: #ff5c5c;
+      --radius: 22px;
+      --shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Inter", "SF Pro Display", "Segoe UI", sans-serif;
+      background: radial-gradient(circle at 15% 15%, #141a24 0%, var(--bg) 45%) fixed;
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 24px;
+      padding: 24px;
+      min-height: 100vh;
+    }
+
+    .glass {
+      background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+      backdrop-filter: blur(18px);
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    /* ===============================
+       Sidebar
+    =============================== */
+    .sidebar {
+      padding: 26px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px;
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: conic-gradient(from 180deg, #e6e6e6 0 25%, var(--accent) 25% 75%, #1f2e61 75%);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 1rem;
+      letter-spacing: 0.06em;
+      font-weight: 600;
+    }
+
+    .nav { display: grid; gap: 8px; }
+
+    .nav a {
+      text-decoration: none;
+      color: var(--muted);
+      padding: 12px 14px;
+      border-radius: 14px;
+      font-weight: 500;
+      transition: 0.25s ease;
+    }
+
+    .nav a.active, .nav a:hover {
+      color: #fff;
+      background: rgba(255,255,255,0.09);
+    }
+
+    /* ===============================
+       Main Layout
+    =============================== */
+    main {
+      display: grid;
+      grid-template-columns: 1fr 330px;
+      gap: 18px;
+    }
+
+    .content { display: grid; gap: 18px; }
+
+    .hero {
+      padding: 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
+    }
+
+    .live {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-bottom: 12px;
+    }
+
+    .dot {
+      width: 9px; height: 9px; border-radius: 50%;
+      background: var(--healthy);
+      box-shadow: 0 0 0 0 rgba(49, 209, 124, 0.7);
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      to { box-shadow: 0 0 0 12px rgba(49, 209, 124, 0); }
+    }
+
+    .hero h2 { margin: 0; font-size: clamp(1.7rem, 3vw, 2.3rem); }
+    .hero p { margin: 8px 0 0; color: var(--muted); }
+
+    .status-pill {
+      padding: 10px 16px;
+      border-radius: 999px;
+      font-weight: 600;
+      color: #dbffe9;
+      background: rgba(49, 209, 124, 0.14);
+      border: 1px solid rgba(49, 209, 124, 0.4);
+      white-space: nowrap;
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(110px, 1fr));
+      gap: 12px;
+    }
+
+    .kpi { padding: 18px; }
+    .kpi .label { color: var(--muted); font-size: 0.82rem; margin-bottom: 8px; }
+    .kpi .value { font-size: 1.5rem; font-weight: 700; }
+
+    .focus-card {
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      gap: 26px;
+    }
+
+    .ring {
+      --score: 87;
+      width: 150px; height: 150px; border-radius: 50%;
+      background:
+        radial-gradient(circle at center, #0d1017 57%, transparent 58%),
+        conic-gradient(var(--healthy) calc(var(--score) * 1%), rgba(255,255,255,0.08) 0);
+      display: grid; place-items: center;
+      border: 1px solid var(--stroke);
+      flex-shrink: 0;
+    }
+
+    .ring b { font-size: 2rem; }
+
+    .charts {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(200px, 1fr));
+      gap: 12px;
+    }
+
+    .chart-card { padding: 16px; }
+    .chart-card h4 { margin: 0 0 10px; font-size: 0.95rem; color: #dde3ee; }
+    .chart-wrap { height: 120px; }
+
+    .panel-list {
+      padding: 14px;
+      overflow: auto;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+    th, td {
+      text-align: left;
+      padding: 12px 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      font-size: 0.86rem;
+    }
+    th { color: var(--muted); font-weight: 500; }
+
+    tbody tr { cursor: pointer; transition: 0.18s ease; }
+    tbody tr:hover { background: rgba(255,255,255,0.05); }
+    tbody tr.active { background: rgba(18, 208, 204, 0.12); }
+
+    .badge {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .side {
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+
+    .detail, .alerts { padding: 20px; }
+    .detail h3, .alerts h3 { margin: 0 0 14px; }
+
+    .meta { display: grid; gap: 10px; }
+    .meta .item {
+      display: flex; justify-content: space-between; gap: 8px;
+      border-bottom: 1px dashed rgba(255,255,255,0.12);
+      padding-bottom: 8px;
+      color: var(--muted);
+    }
+    .meta .item b { color: #fff; font-weight: 600; }
+
+    .alerts ul { margin: 0; padding-left: 18px; display: grid; gap: 10px; color: #dbe1ea; }
+    .alerts li { line-height: 1.45; }
+
+    @media (max-width: 1260px) {
+      main { grid-template-columns: 1fr; }
+      .side { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
+    }
+
+    @media (max-width: 960px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .kpis { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
+      .charts { grid-template-columns: 1fr; }
+      .focus-card { flex-direction: column; align-items: flex-start; }
+      .side { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar glass">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"></div>
+        <h1>Alb Health Core</h1>
+      </div>
+      <nav class="nav">
+        <a class="active" href="#">Overview</a>
+        <a href="#">Panels</a>
+        <a href="#">Alerts</a>
+        <a href="#">Analytics</a>
+        <a href="#">Settings</a>
+      </nav>
+    </aside>
+
+    <main>
+      <section class="content">
+        <header class="hero glass">
+          <div>
+            <div class="live"><span class="dot"></span>Live</div>
+            <h2>Intelligence under the sun.</h2>
+            <p>Real-time thermal awareness for every panel.</p>
+          </div>
+          <div class="status-pill" id="systemStatus">System Healthy</div>
+        </header>
+
+        <section class="kpis" id="kpiGrid"></section>
+
+        <section class="focus-card glass">
+          <div class="ring" id="scoreRing"><b id="healthScore">87%</b></div>
+          <div>
+            <h3 style="margin:0 0 8px; font-size:1.3rem;">Overall System Health</h3>
+            <p style="margin:0; color:var(--muted); max-width: 460px;">
+              Live aggregate confidence score based on panel temperature spread, J-Box drift,
+              humidity exposure and thermal stress patterns.
+            </p>
+          </div>
+        </section>
+
+        <section class="charts" id="charts"></section>
+
+        <section class="panel-list glass">
+          <table>
+            <thead>
+              <tr>
+                <th>Panel ID</th><th>Serial Number</th><th>Panel Temp</th><th>J-Box Temp</th><th>Humidity</th><th>Stress</th><th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="panelTable"></tbody>
+          </table>
+        </section>
+      </section>
+
+      <aside class="side">
+        <section class="detail glass">
+          <h3>Selected Panel</h3>
+          <div class="meta" id="detailMeta"></div>
+        </section>
+        <section class="alerts glass">
+          <h3>Alerts</h3>
+          <ul id="alertsList"></ul>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    // ===============================
+    // Mock Data + Utilities
+    // ===============================
+    const panels = Array.from({ length: 24 }, (_, i) => ({
+      id: `AHC-P1-${String(i + 1).padStart(4, "0")}`,
+      serial: `ALB470-2026-${String(124 + i).padStart(5, "0")}`,
+      panelTemp: 45 + Math.random() * 10,
+      jboxTemp: 48 + Math.random() * 9,
+      humidity: 52 + Math.random() * 18,
+      stress: 24 + Math.random() * 24,
+      lastSeen: Math.floor(Math.random() * 18) + 4
+    }));
+
+    const metrics = {
+      panelTemp: [], jboxTemp: [], humidity: [], stress: []
+    };
+
+    const labels = [
+      { key: "panelTemp", title: "Panel Temperature Trend", color: "#4fd7ff", unit: "°C" },
+      { key: "jboxTemp", title: "J-Box Temperature Trend", color: "#8ea0ff", unit: "°C" },
+      { key: "humidity", title: "Humidity Trend", color: "#36d28a", unit: "%" },
+      { key: "stress", title: "Thermal Stress Trend", color: "#ffbe44", unit: "" }
+    ];
+
+    let selectedPanelId = "AHC-P1-0001";
+
+    const statusFromStress = (stress) => stress <= 40 ? "Healthy" : stress <= 70 ? "Attention" : "Critical";
+    const statusClass = (status) => status === "Healthy" ? "var(--healthy)" : status === "Attention" ? "var(--attention)" : "var(--critical)";
+    const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+
+    function mutateData() {
+      panels.forEach((p) => {
+        p.panelTemp = clamp(p.panelTemp + (Math.random() - 0.5) * 2.8, 34, 76);
+        p.jboxTemp = clamp(p.jboxTemp + (Math.random() - 0.5) * 2.6, 36, 82);
+        p.humidity = clamp(p.humidity + (Math.random() - 0.5) * 3, 35, 86);
+        p.stress = clamp((p.panelTemp * 0.55 + p.jboxTemp * 0.65 + p.humidity * 0.35) / 2.2 + (Math.random() - 0.5) * 3.5, 12, 92);
+        p.lastSeen = Math.floor(Math.random() * 14) + 2;
+      });
+
+      const avg = (k) => panels.reduce((s, p) => s + p[k], 0) / panels.length;
+      metrics.panelTemp.push(avg("panelTemp"));
+      metrics.jboxTemp.push(avg("jboxTemp"));
+      metrics.humidity.push(avg("humidity"));
+      metrics.stress.push(avg("stress"));
+      Object.keys(metrics).forEach((k) => metrics[k] = metrics[k].slice(-20));
+    }
+
+    function renderKPIs() {
+      const healthy = panels.filter((p) => statusFromStress(p.stress) === "Healthy").length;
+      const attention = panels.filter((p) => statusFromStress(p.stress) === "Attention").length;
+      const critical = panels.filter((p) => statusFromStress(p.stress) === "Critical").length;
+      const avgStress = Math.round(panels.reduce((s, p) => s + p.stress, 0) / panels.length);
+
+      document.getElementById("kpiGrid").innerHTML = [
+        ["Total Panels", panels.length],
+        ["Healthy", healthy],
+        ["Attention", attention],
+        ["Critical", critical],
+        ["Average Thermal Stress", avgStress]
+      ].map(([label, value]) => `<article class="kpi glass"><div class="label">${label}</div><div class="value">${value}</div></article>`).join("");
+
+      const healthScore = Math.round(100 - avgStress * 0.38);
+      document.getElementById("healthScore").textContent = `${healthScore}%`;
+      document.getElementById("scoreRing").style.setProperty("--score", healthScore);
+
+      const sys = document.getElementById("systemStatus");
+      const status = healthScore > 76 ? "System Healthy" : healthScore > 58 ? "System Attention" : "System Critical";
+      const color = healthScore > 76 ? "var(--healthy)" : healthScore > 58 ? "var(--attention)" : "var(--critical)";
+      sys.textContent = status;
+      sys.style.borderColor = color;
+      sys.style.color = "#fff";
+      sys.style.background = `color-mix(in srgb, ${color} 25%, transparent)`;
+    }
+
+    function chartSVG(points, color) {
+      const w = 360, h = 120, p = 12;
+      if (!points.length) return "";
+      const max = Math.max(...points), min = Math.min(...points);
+      const mapX = (i) => p + (i * (w - p * 2)) / Math.max(1, points.length - 1);
+      const mapY = (v) => h - p - ((v - min) / Math.max(1, max - min)) * (h - p * 2);
+      const d = points.map((v, i) => `${i ? "L" : "M"}${mapX(i)},${mapY(v)}`).join(" ");
+      return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="100%" preserveAspectRatio="none">
+        <path d="${d}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" />
+      </svg>`;
+    }
+
+    function renderCharts() {
+      document.getElementById("charts").innerHTML = labels.map((c) => `
+        <article class="chart-card glass">
+          <h4>${c.title}</h4>
+          <div class="chart-wrap">${chartSVG(metrics[c.key], c.color)}</div>
+        </article>
+      `).join("");
+    }
+
+    function renderPanels() {
+      const tbody = document.getElementById("panelTable");
+      tbody.innerHTML = panels.map((p) => {
+        const status = statusFromStress(p.stress);
+        const active = p.id === selectedPanelId ? "active" : "";
+        return `<tr class="${active}" data-id="${p.id}">
+          <td>${p.id}</td>
+          <td>${p.serial}</td>
+          <td>${p.panelTemp.toFixed(1)}°C</td>
+          <td>${p.jboxTemp.toFixed(1)}°C</td>
+          <td>${Math.round(p.humidity)}%</td>
+          <td>${Math.round(p.stress)}</td>
+          <td><span class="badge" style="background: color-mix(in srgb, ${statusClass(status)} 22%, transparent); border:1px solid ${statusClass(status)}; color:#fff;">${status}</span></td>
+        </tr>`;
+      }).join("");
+
+      tbody.querySelectorAll("tr").forEach((tr) => {
+        tr.addEventListener("click", () => {
+          selectedPanelId = tr.dataset.id;
+          renderPanels();
+          renderDetail();
+        });
+      });
+    }
+
+    function renderDetail() {
+      const p = panels.find((x) => x.id === selectedPanelId) || panels[0];
+      const status = statusFromStress(p.stress);
+      document.getElementById("detailMeta").innerHTML = `
+        <div class="item"><span>Device ID</span><b>${p.id}</b></div>
+        <div class="item"><span>Serial</span><b>${p.serial}</b></div>
+        <div class="item"><span>Panel Back Temp</span><b>${p.panelTemp.toFixed(1)}°C</b></div>
+        <div class="item"><span>J-Box Temp</span><b>${p.jboxTemp.toFixed(1)}°C</b></div>
+        <div class="item"><span>Humidity</span><b>${Math.round(p.humidity)}%</b></div>
+        <div class="item"><span>Thermal Stress Score</span><b>${Math.round(p.stress)}</b></div>
+        <div class="item"><span>Status</span><b style="color:${statusClass(status)};">${status}</b></div>
+        <div class="item"><span>Last seen</span><b>${p.lastSeen} seconds ago</b></div>
+      `;
+    }
+
+    function renderAlerts() {
+      const manualAlerts = [
+        "Panel AHC-P1-0007: J-Box temperature rising",
+        "Panel AHC-P1-0012: High humidity detected",
+        "Panel AHC-P1-0018: Thermal stress above normal"
+      ];
+      document.getElementById("alertsList").innerHTML = manualAlerts.map((a) => `<li>${a}</li>`).join("");
+    }
+
+    function renderAll() {
+      renderKPIs(); renderCharts(); renderPanels(); renderDetail(); renderAlerts();
+    }
+
+    // Bootstrap
+    for (let i = 0; i < 14; i++) mutateData();
+    renderAll();
+    setInterval(() => {
+      mutateData();
+      renderAll();
+    }, 3000);
+  </script>
+</body>
+</html>
